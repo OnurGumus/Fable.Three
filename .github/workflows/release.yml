@@ -1,7 +1,10 @@
 name: Release
 
 # Push a tag named after the package version (v0.186.0) to publish to NuGet.
-# Needs a NUGET_API_KEY repository secret.
+#
+# Publishing uses nuget.org Trusted Publishing: no API key is stored anywhere. GitHub issues
+# this job a short-lived OIDC token, nuget.org checks it against the trusted publishing
+# policy for this repository and workflow file, and hands back an API key valid for an hour.
 on:
   push:
     tags: ["v*"]
@@ -9,6 +12,9 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # the OIDC token nuget.org exchanges for a temporary API key
     steps:
       - uses: actions/checkout@v4
 
@@ -31,4 +37,13 @@ jobs:
           test "v$version" = "${GITHUB_REF_NAME}" || { echo "tag ${GITHUB_REF_NAME} but package version $version"; exit 1; }
 
       - run: dotnet pack src/Fable.Three -c Release -o artifacts
-      - run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json
+
+      # Requested just before the push: the key it returns lives for an hour.
+      - name: NuGet login (OIDC to temporary API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ReverseBlade # nuget.org profile name, not an email address
+
+      - name: NuGet push
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json
