@@ -1,0 +1,21 @@
+{
+  "name": "fable-three-repo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node tools/generate/generate.ts",
+    "check:generator": "tsc -p tools/generate",
+    "build": "dotnet build src/Fable.Three -c Release",
+    "test": "dotnet fable tests -o tests/build && node --test tests/build/MathTests.js tests/build/SceneTests.js tests/build/AddonTests.js",
+    "demo": "dotnet fable watch demo -o demo/build --runFast vite --config demo/vite.config.js",
+    "demo:build": "dotnet fable demo -o demo/build && vite build --config demo/vite.config.js",
+    "demo:preview": "vite preview --config demo/vite.config.js"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.0",
+    "@types/three": "0.186.0",
+    "three": "0.186.1",
+    "typescript": "^5.9.0",
+    "vite": "^7.0.0"
+  }
+}

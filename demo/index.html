@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fable.Three</title>
+    <meta name="description" content="three.js from F#: a small Fable.Three demo." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect x=%222%22 y=%225%22 width=%2212%22 height=%229%22 fill=%22%23d4532e%22/%3E%3C/svg%3E" />
+    <style>
+      :root {
+        --paper: #f2eee6;
+        --ink: #2b2723;
+        --muted: #8a8174;
+        --rule: #d8d1c4;
+        --accent: #d4532e;
+      }
+      html, body { margin: 0; height: 100%; background: var(--paper); color: var(--ink); }
+      body { font: 13px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+      #stage { position: fixed; inset: 0; }
+      #stage canvas { display: block; }
+      #stage canvas.pointing { cursor: pointer; }
+      .caption {
+        position: fixed; left: 24px; bottom: 24px; max-width: 320px;
+        padding: 14px 16px; border-top: 1px solid var(--rule);
+        background: color-mix(in srgb, var(--paper) 88%, transparent);
+      }
+      .caption h1 { margin: 0 0 4px; font-size: 15px; font-weight: 600; letter-spacing: 0.01em; }
+      .caption h1 span { color: var(--accent); }
+      .caption p { margin: 0; color: var(--muted); }
+      .caption a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+      .caption a:hover { border-bottom-color: var(--accent); }
+      @media (max-width: 480px) { .caption { left: 16px; right: 16px; bottom: 16px; max-width: none; } }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <div class="caption">
+      <h1>Fable.Three<span>.</span></h1>
+      <p>three.js, typed and written in F#. Hover a carton, click to lift it, drag to look around.</p>
+      <p><a href="https://github.com/OnurGumus/Fable.Three/blob/main/demo/App.fs">Read the source</a></p>
+    </div>
+    <script type="module" src="./build/App.js"></script>
+  </body>
+</html>

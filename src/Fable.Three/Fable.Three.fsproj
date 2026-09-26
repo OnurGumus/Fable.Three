@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- three.js's own docs carry markup the XML doc checker would flag; they are for IntelliSense. -->
+    <NoWarn>$(NoWarn);FS3390</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Fable.Three</PackageId>
+    <!-- major.minor follow the three.js release the bindings were generated from (0.186 = r186);
+         the patch is this package's own. -->
+    <Version>0.186.0</Version>
+    <Authors>Onur Gumus</Authors>
+    <Description>Complete, generated Fable bindings for three.js r186: the whole `three` module and every `three/addons` module, as typed F# classes with named-argument constructors, enums and XML docs.</Description>
+    <PackageTags>fable;fable-library;fable-javascript;fable-binding;three;threejs;webgl;3d</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/OnurGumus/Fable.Three</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/OnurGumus/Fable.Three</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>See https://github.com/OnurGumus/Fable.Three/blob/main/CHANGELOG.md</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <!-- Read by Femto (`dotnet femto`) to install the matching three.js from npm. -->
+  <PropertyGroup>
+    <NpmDependencies>
+      <NpmPackage Name="three" Version="&gt;= 0.186.0 &lt; 0.187.0" ResolutionStrategy="Max" />
+    </NpmDependencies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Interop.fs" />
+    <Compile Include="Three.fs" />
+    <Compile Include="Three.Addons.fs" />
+  </ItemGroup>
+
+  <!-- Fable compiles libraries from source, so the .fs files ship in the package. -->
+  <ItemGroup>
+    <Content Include="*.fsproj; @(Compile)" Pack="true" PackagePath="fable/" />
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Kept low: consumers compile these sources with their own compiler through Fable. -->
+    <PackageReference Update="FSharp.Core" Version="6.0.7" />
+    <PackageReference Include="Fable.Core" Version="4.3.0" />
+    <PackageReference Include="Fable.Browser.Dom" Version="2.18.0" />
+    <PackageReference Include="Fable.Browser.WebGL" Version="1.3.0" />
+  </ItemGroup>
+
+</Project>

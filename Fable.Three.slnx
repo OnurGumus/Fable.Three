@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/demo/">
+    <Project Path="demo/Demo.fsproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Fable.Three/Fable.Three.fsproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Fable.Three.Tests.fsproj" />
+  </Folder>
+</Solution>

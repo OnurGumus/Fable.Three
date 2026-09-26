@@ -1,0 +1,34 @@
+name: Release
+
+# Push a tag named after the package version (v0.186.0) to publish to NuGet.
+# Needs a NUGET_API_KEY repository secret.
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: dotnet tool restore
+      - run: npm test
+
+      - name: Tag matches the package version
+        run: |
+          version=$(dotnet msbuild src/Fable.Three -getProperty:Version)
+          test "v$version" = "${GITHUB_REF_NAME}" || { echo "tag ${GITHUB_REF_NAME} but package version $version"; exit 1; }
+
+      - run: dotnet pack src/Fable.Three -c Release -o artifacts
+      - run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json

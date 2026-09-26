@@ -1,0 +1,14 @@
+bin/
+obj/
+node_modules/
+fable_modules/
+.fable/
+tests/build/
+demo/build/
+demo/dist/
+*.nupkg
+artifacts/
+tools/generate/report.txt
+.idea/
+.vs/
+.DS_Store
