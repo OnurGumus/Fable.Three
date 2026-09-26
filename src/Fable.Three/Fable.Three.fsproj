@@ -12,7 +12,7 @@
     <PackageId>Fable.Three</PackageId>
     <!-- major.minor follow the three.js release the bindings were generated from (0.186 = r186);
          the patch is this package's own. -->
-    <Version>0.186.0</Version>
+    <Version>0.186.1</Version>
     <Authors>Onur Gumus</Authors>
     <Description>Complete, generated Fable bindings for three.js r186: the whole `three` module and every `three/addons` module, as typed F# classes with named-argument constructors, enums and XML docs.</Description>
     <PackageTags>fable;fable-library;fable-javascript;fable-binding;three;threejs;webgl;3d</PackageTags>
