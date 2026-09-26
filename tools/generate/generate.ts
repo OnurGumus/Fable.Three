@@ -450,7 +450,7 @@ function mapUnion(types: readonly ts.TypeNode[], ctx: Ctx): string {
 
     const inner = { ...ctx, pos: "other" as Pos };
     // `HTMLElement | SVGElement`: keep what F# can name rather than giving up on the union.
-    const known = parts.filter((p) => !isUnboundLibRef(p));
+    const known = parts.filter((p) => !isUnboundLibRef(p) && !isOpaqueRef(p));
     let mapped = collapseTypedArrays(unique((known.length > 0 ? known : parts).map((p) => mapType(p, inner))));
     // `string | "Mesh"` style: a literal alongside its base type adds nothing.
     if (mapped.includes("obj")) return "obj";
@@ -462,6 +462,28 @@ function mapUnion(types: readonly ts.TypeNode[], ctx: Ctx): string {
     }
     if (mapped.length > 8) return "obj";
     return `Union<${mapped.join(", ")}>`;
+}
+
+/**
+ * How many times mapping fell back to `obj` because a type lives in an opaque subsystem
+ * (the WebGPU node system). Read around a member's mapping to tell a member that only
+ * exists for WebGPU from one that is merely untyped.
+ */
+let opaqueHits = 0;
+
+/** A type that says nothing but `obj`: `obj`, `obj[]`, `obj option`, `(unit -> obj) option`. */
+function isObjish(t: string): boolean {
+    return t.includes("obj") && t.replace(/\bobj\b|\bunit\b|\boption\b|->|\[\]|[()*\s]/g, "") === "";
+}
+
+/** A reference to a three type in an opaque subsystem that is not bound (a node). */
+function isOpaqueRef(t: ts.TypeNode): boolean {
+    if (!ts.isTypeReferenceNode(t)) return false;
+    const s0 = checker.getSymbolAtLocation(t.typeName);
+    const s = s0 && resolveAlias(s0);
+    if (!s || bySymbol.has(s)) return false;
+    const file = fileOf(s);
+    return inThree(file) && opaque.some((r) => r.test(file));
 }
 
 /** A reference to a DOM/lib type with no Fable.Browser binding (SVGElement, XRFrame...). */
@@ -635,7 +657,10 @@ function mapSymbolRef(sym: ts.Symbol | undefined, args: readonly ts.TypeNode[], 
         if (skip.has(sym.name)) return typeOverrides[sym.name] ?? "obj";
         // Not exported under this entry: bind it anyway so the signature can name it, unless
         // it belongs to a subsystem this package does not cover.
-        if (opaque.some((r) => r.test(file))) return "obj";
+        if (opaque.some((r) => r.test(file))) {
+            opaqueHits++;
+            return "obj";
+        }
         const t = targetFor(file);
         e = register(sym, t, undefined, true);
         if (!e) {
@@ -1119,9 +1144,12 @@ function collectMembers(members: readonly (ts.TypeElement | ts.ClassElement)[], 
         if (inClass && ts.isPropertyDeclaration(m) && m.type && !m.questionToken && !HOOK.test(name)) {
             const ft = unparen(m.type);
             if (ts.isFunctionTypeNode(ft)) {
+                const before = opaqueHits;
                 const mctx = methodCtx(ctx, ft.typeParameters, name);
                 const ret = ft.type.kind === SK.AnyKeyword ? "obj" : mapType(ft.type, { ...mctx, pos: "return" });
-                methods.push({ name, params: params(ft.parameters, mctx), ret, doc: docOf(m), isStatic: isStatic(m), typeParams: [] });
+                const ps = params(ft.parameters, mctx);
+                if (!(opaqueHits > before && (isObjish(ret) || ps.some((p) => isObjish(p.type)))))
+                    methods.push({ name, params: ps, ret, doc: docOf(m), isStatic: isStatic(m), typeParams: [] });
                 continue;
             }
         }
@@ -1129,9 +1157,14 @@ function collectMembers(members: readonly (ts.TypeElement | ts.ClassElement)[], 
             const doc = docOf(m);
             // A property holding a function whose own parameters are optional is still a
             // property: F# code assigns or reads it rather than calling it as a method.
+            const before = opaqueHits;
+            const type = mapType(m.type, propTypeCtx(ctx, name));
+            // Typed only by the WebGPU node system (`colorNode`, `lightsNode` on every
+            // material): meaningless under WebGL and nothing but `obj` here.
+            if (opaqueHits > before && isObjish(type)) continue;
             props.push({
                 name,
-                type: mapType(m.type, propTypeCtx(ctx, name)),
+                type,
                 readonly: isReadonly(m),
                 optional: !!m.questionToken,
                 doc,
@@ -1147,6 +1180,7 @@ function collectMembers(members: readonly (ts.TypeElement | ts.ClassElement)[], 
         }
         if (ts.isMethodDeclaration(m) || ts.isMethodSignature(m)) {
             if ((m as ts.MethodDeclaration).asteriskToken) continue;
+            const before = opaqueHits;
             const mctx = methodCtx(ctx, m.typeParameters, name);
             const ps = params(m.parameters, mctx);
             // `setValues(values?: MeshStandardMaterialParameters)`: calling it with nothing does
@@ -1155,11 +1189,16 @@ function collectMembers(members: readonly (ts.TypeElement | ts.ClassElement)[], 
             if (ps.length === 1 && ps[0].optional && pojoOf(ps[0].type)) ps[0].optional = false;
             let ret = mapType(m.type, { ...mctx, pos: "return" });
             if (!m.type) ret = "unit";
+            // A method that takes or returns a node (`setIndirect(IndirectStorageBufferAttribute)`)
+            // only works with the WebGPU renderer.
+            if (opaqueHits > before && (isObjish(ret) || ps.some((p) => isObjish(p.type)))) continue;
             methods.push({ name, params: ps, ret, doc: docOf(m), isStatic: isStatic(m), typeParams: [] });
         }
     }
     for (const [name, a] of accessors) {
+        const before = opaqueHits;
         const t = a.get ? mapType(a.get.type, propTypeCtx(ctx, name)) : mapType(a.set!.parameters[0]?.type, propTypeCtx(ctx, name));
+        if (opaqueHits > before && isObjish(t)) continue;
         props.push({ name, type: t, readonly: !a.set, optional: false, doc: docOf(a.get ?? a.set), isStatic: isStatic((a.get ?? a.set)!) });
     }
     return { props, methods, indexers };

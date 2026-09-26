@@ -35,8 +35,9 @@ const cube = new Mesh(new BoxGeometry(1, 1, 1), new MeshStandardMaterial({ color
 
 Generated from `@types/three` 0.186.0 for three.js r186:
 
-- **`three`**: 600 types and about 7,800 members: every class, material, geometry, light, loader,
-  helper, curve and math type, plus the WebGL renderer, WebXR and animation.
+- **`three`**: 600 types and about 6,900 members: every class, material, geometry, light, loader,
+  helper, curve and math type, plus the WebGL renderer, WebXR and animation. Every one of the 444
+  names the module exports is bound.
 - **`three/addons`**: all 271 modules that `three/addons` exports, with 628 types and about 5,300
   members. That covers controls, GLTF/DRACO/KTX2/HDR and the other loaders, post-processing,
   CSS2D/CSS3D, lines, exporters, geometries, physics helpers, shaders and utilities. Each class
@@ -44,7 +45,9 @@ Generated from `@types/three` 0.186.0 for three.js r186:
 - XML docs from three.js's own documentation, shown in the editor's tooltips.
   `[<Obsolete>]` marks what three.js has deprecated.
 
-The WebGPU renderer and TSL (`three/webgpu`, `three/tsl`) are not bound yet.
+The WebGPU renderer and TSL (`three/webgpu`, `three/tsl`) are not bound yet. Members that only
+exist for them, such as the `colorNode` and `lightsNode` properties @types/three declares on every
+material, are left out rather than bound as `obj`.
 
 ## Install
 

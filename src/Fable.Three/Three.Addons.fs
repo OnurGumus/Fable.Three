@@ -2430,7 +2430,7 @@ type EXRExporterParseOptions =
 [<Import("EXRExporter", "three/addons/exporters/EXRExporter.js")>]
 type EXRExporter =
     new () = { }
-    member _.parse(renderer: obj, renderTarget: WebGLRenderTarget, ?options: EXRExporterParseOptions) : JS.Promise<JS.Uint8Array> = jsNative
+    member _.parse(renderer: WebGLRenderer, renderTarget: WebGLRenderTarget, ?options: EXRExporterParseOptions) : JS.Promise<JS.Uint8Array> = jsNative
     member _.parse(dataTexture: DataTexture, ?options: EXRExporterParseOptions) : JS.Promise<JS.Uint8Array> = jsNative
 
 // --------------------------------------------------------------------------------------
@@ -2581,7 +2581,7 @@ type TextureUtils =
 [<Import("KTX2Exporter", "three/addons/exporters/KTX2Exporter.js")>]
 type KTX2Exporter =
     new () = { }
-    member _.parse(renderer: obj, ?rtt: WebGLRenderTarget) : JS.Promise<JS.Uint8Array> = jsNative
+    member _.parse(renderer: WebGLRenderer, ?rtt: WebGLRenderTarget) : JS.Promise<JS.Uint8Array> = jsNative
     member _.parse(texture: Data3DTexture) : JS.Promise<JS.Uint8Array> = jsNative
     member _.parse(texture: DataTexture) : JS.Promise<JS.Uint8Array> = jsNative
 
@@ -4524,7 +4524,6 @@ type LightProbeGenerator =
     new () = { }
     static member fromCubeTexture(cubeTexture: CubeTexture) : LightProbe = jsNative
     static member fromCubeRenderTarget(renderer: WebGLRenderer, cubeRenderTarget: WebGLCubeRenderTarget) : JS.Promise<LightProbe> = jsNative
-    static member fromCubeRenderTarget(renderer: obj, cubeRenderTarget: obj) : JS.Promise<LightProbe> = jsNative
 
 // --------------------------------------------------------------------------------------
 // examples/jsm/lights/RectAreaLightUniformsLib.d.ts
@@ -5746,14 +5745,12 @@ type KTX2Loader =
     /// <summary>Sets the maximum number of web workers to be allocated by this instance.</summary>
     /// <param name="limit">Maximum number of workers. Default is '4'.</param>
     member _.setWorkerLimit(limit: float) : KTX2Loader = jsNative
-    /// <summary>"detectSupportAsync()" has been deprecated. Use "detectSupport()" and "await renderer.init();" when creating the renderer.</summary>
-    member _.detectSupportAsync(renderer: obj) : JS.Promise<KTX2Loader> = jsNative
     /// <summary>
     /// Detects hardware support for available compressed texture formats, to determine the output format for the
     /// transcoder. Must be called before loading a texture.
     /// </summary>
     /// <param name="renderer">A renderer instance.</param>
-    member _.detectSupport(renderer: obj) : KTX2Loader = jsNative
+    member _.detectSupport(renderer: WebGLRenderer) : KTX2Loader = jsNative
     member _.init() : JS.Promise<unit> = jsNative
     member _.parse(buffer: JS.ArrayBuffer, ?onLoad: (CompressedTexture -> unit), ?onError: (obj -> unit)) : unit = jsNative
     /// <summary>Disposes the loader object, de-allocating any Web Workers created.</summary>
@@ -8078,10 +8075,8 @@ type GaussianSplat =
     member _.materials
         with [<Emit("$0.material")>] get () : obj[] = jsNative
         and [<Emit("$0.material = $1")>] set (_: obj[]) = jsNative
-    member _.updateSphericalHarmonics(renderer: obj, camera: Camera) : bool = jsNative
     member _.computeBoundingBox() : unit = jsNative
     member _.computeBoundingSphere() : unit = jsNative
-    member _.updateSort(renderer: obj, camera: Camera) : bool = jsNative
     /// <summary>Applies the rotation represented by the quaternion to the object.</summary>
     member _.applyQuaternion(quaternion: Quaternion) : GaussianSplat = jsNative
     /// <summary>Rotate an object along an axis in object space.</summary>

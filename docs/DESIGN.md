@@ -11,8 +11,10 @@ entry point it walks the exports as the type checker resolves them, following `e
 
 A type an export mentions but does not export itself is still bound, as a `[<Global>]` class
 with no import, so the signature can name it. Exceptions are the paths listed in `opaque`
-(`src/nodes`, the WebGPU renderer): the WebGL build only mentions those in passing, and they
-map to `obj`.
+(`src/nodes`, the WebGPU renderer): the WebGL build only mentions those in passing. A union
+member from one of them is dropped from the union (`Texture | TextureNode` is a Texture), and a
+member whose whole type is one of them is left out (the `colorNode` family on every material,
+`setIndirect`): it only works with the WebGPU renderer, and it would be nothing but `obj` here.
 
 Every rule below was checked against Fable 5 by compiling a probe and reading the JavaScript.
 The tests keep them checked.
